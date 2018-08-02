@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "prop-types": "^15.6.2",
-    "react-native-draggable-flatlist": "git+https://github.com/computerjazz/react-native-draggable-flatlist.git"
+    "react-native-draggable-flatlist": "git+https://github.com/jigaryadav/react-native-draggable-flatlist.git"
   },
   "peerDependencies": {
     "react": "*",
