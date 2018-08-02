@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { View, TouchableHighlight } from 'react-native';
+import { View, TouchableHighlight, FlatList } from 'react-native';
 import Collapsible from './Collapsible';
 import { ViewPropTypes } from './config';
+import DraggableFlatList from 'react-native-draggable-flatlist'
 
 const COLLAPSIBLE_PROPS = Object.keys(Collapsible.propTypes);
 const VIEW_PROPS = Object.keys(ViewPropTypes);
@@ -28,6 +29,9 @@ export default class Accordion extends Component {
     disabled: PropTypes.bool,
     expandFromBottom: PropTypes.bool,
     onAnimationEnd: PropTypes.func,
+    outerLayerStyle: PropTypes.object,
+    dragPosition: PropTypes.func,
+    draggable:PropTypes.boolean
   };
 
   static defaultProps = {
@@ -111,35 +115,75 @@ export default class Accordion extends Component {
         )}
       </Collapsible>
     );
-
     return (
-      <View {...viewProps}>
-        {this.props.sections.map((section, key) => (
-          <View key={key}>
-            {this.props.renderSectionTitle(
-              section,
-              key,
-              this.state.activeSection === key
-            )}
+      <View style={{flex:1}} {...viewProps}>
+        {this.props.draggable?
+          <DraggableFlatList
+          data={this.props.sections}
+          renderItem={({ item, index, move, moveEnd, isActive })=>{
+            return (
+              <View style={this.props.outerLayerStyle} key={index}>
+                  {this.props.renderSectionTitle(
+                    item,
+                    index,
+                    this.state.activeSection === index
+                  )}
 
-            {this.props.expandFromBottom && renderCollapsible(section, key)}
+                  {this.props.expandFromBottom && renderCollapsible(item, index)}
 
-            <Touchable
-              onPress={() => this._toggleSection(key)}
-              underlayColor={this.props.underlayColor}
-              {...this.props.touchableProps}
-            >
-              {this.props.renderHeader(
-                section,
-                key,
-                this.state.activeSection === key,
-                this.props.sections
-              )}
-            </Touchable>
+                  <Touchable
+                    onPress={() => this._toggleSection(index)}
+                    underlayColor={this.props.underlayColor}
+                    onLongPress={move}
+                    onPressOut={moveEnd}
+                    {...this.props.touchableProps}
+                  >
+                    {this.props.renderHeader(
+                      item,
+                      index,
+                      this.state.activeSection === index,
+                      this.props.items
+                    )}
+                  </Touchable>
 
-            {!this.props.expandFromBottom && renderCollapsible(section, key)}
-          </View>
-        ))}
+                  {!this.props.expandFromBottom && renderCollapsible(item, index)}
+              </View>
+            )
+          }}
+          keyExtractor={(item, index) => item.id}
+          scrollPercent={5}
+          onMoveEnd={this.props.dragPosition}
+        />:
+        <FlatList
+          data={this.props.sections}
+          renderItem={({item,index}) =>{
+            return <View style={this.props.outerLayerStyle} key={index}>
+                {this.props.renderSectionTitle(
+                  item,
+                  index,
+                  this.state.activeSection === index
+                )}
+
+                {this.props.expandFromBottom && renderCollapsible(item, index)}
+
+                <Touchable
+                  onPress={() => this._toggleSection(index)}
+                  underlayColor={this.props.underlayColor}
+                  {...this.props.touchableProps}
+                >
+                  {this.props.renderHeader(
+                    item,
+                    index,
+                    this.state.activeSection === index,
+                    this.props.items
+                  )}
+                </Touchable>
+
+                {!this.props.expandFromBottom && renderCollapsible(item, index)}
+            </View>
+          }}
+        />
+      }
       </View>
     );
   }
